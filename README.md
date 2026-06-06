@@ -16,7 +16,6 @@ Earnings reports are carefully crafted documents where every word matters. While
 - [Methodology](#methodology)
 - [Analysis Features](#analysis-features)
 - [Limitations & Considerations](#limitations--considerations)
-- [Contributing](#contributing)
 
 ---
 
