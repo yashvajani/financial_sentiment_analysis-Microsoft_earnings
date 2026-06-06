@@ -29,6 +29,7 @@ This project analyzes the sentiment and tone of Microsoft's quarterly earnings r
 
 ## Project Structure
 financial_sentiment_analysis-Microsoft_earnings/ 
+
 ├── code/ │ 
 ├── extractData.py # Data extraction from Word documents │
 ├── text_preprocessing.py # Text cleaning and normalization │
@@ -36,10 +37,10 @@ financial_sentiment_analysis-Microsoft_earnings/
 ├── explorer_sentence.ipynb # Sentence-level analysis notebook │
 ├── explorer_paragraph.ipynb # Paragraph-level analysis notebook 
 
-├── data/ │ 
-├── earningsrelease/ # Microsoft earnings press releases (DOCX) │
-├── earnings_per_share_estimates.xlsx # EPS data │ 
-└── steffen_extract_msft.csv # Extracted earnings data 
+└── data/ │ 
+└── earningsrelease/ # Microsoft earnings press releases (DOCX) │
+└── earnings_per_share_estimates.xlsx # EPS data │ 
+└── steffen_extract_msft.csv # Extracted earnings data │ 
 └── README.md
 
 
