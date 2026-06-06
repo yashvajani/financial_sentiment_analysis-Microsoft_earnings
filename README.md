@@ -14,12 +14,7 @@ Earnings reports are carefully crafted documents where every word matters. While
 - [Key Findings](#key-findings)
 - [Project Structure](#project-structure)
 - [Methodology](#methodology)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Components](#components)
-- [Models](#models)
 - [Analysis Features](#analysis-features)
-- [Interactive Sentiment Parsing](#interactive-sentiment-parsing)
 - [Limitations & Considerations](#limitations--considerations)
 - [Contributing](#contributing)
 
@@ -109,23 +104,23 @@ This project develops an **interactive sentiment analysis platform** for parsing
 
 ```
 financial_sentiment_analysis-Microsoft_earnings/
-├── README.md                          # This file
+├── README.md                                # This file
 ├── code/
-│   ├── extractData.py                # Data extraction from Word documents (.docx)
-│   ├── text_preprocessing.py          # Text cleaning and financial NLP normalization
-│   ├── classifiers.py                # Sentiment classification models (FinBERT, DistilRoBERTa)
-│   ├── explorer_sentence.ipynb       # Interactive sentence-level sentiment analysis
-│   └── explorer_paragraph.ipynb      # Interactive paragraph-level exploration
+│   ├── extractData.py                       # Data extraction from Word documents (.docx)
+│   ├── text_preprocessing.py                # Text cleaning and financial NLP normalization
+│   ├── classifiers.py                       # Sentiment classification models (FinBERT, DistilRoBERTa)
+│   ├── explorer_sentence.ipynb              # Interactive sentence-level sentiment analysis
+│   └── explorer_paragraph.ipynb             # Interactive paragraph-level exploration
 ├── data/
-│   ├── earningsrelease/              # Microsoft earnings press releases (DOCX)
-│   │   └── PressReleaseFY##Q#.docx  # Named by fiscal year and quarter
-│   ├── earnings_per_share_estimates.xlsx  # EPS targets, actuals, revisions
-│   ├── steffen_extract_msft.csv     # Pre-extracted earnings metrics
-│   └── README.md                      # Data documentation
+│   ├── earningsrelease/                     # Microsoft earnings press releases (DOCX)
+│   │   └── PressReleaseFY##Q#.docx          # Named by fiscal year and quarter
+│   ├── earnings_per_share_estimates.xlsx    # EPS targets, actuals, revisions
+│   ├── steffen_extract_msft.csv             # Pre-extracted earnings metrics
+│   └── README.md                            # Data documentation
 └── outputs/
-    ├── sentiment_scores/             # Scored sentences and paragraphs
-    ├── visualizations/               # Sentiment trends, heatmaps
-    └── correlation_analysis/         # Sentiment-EPS correlations
+    ├── sentiment_scores/                    # Scored sentences and paragraphs
+    ├── visualizations/                      # Sentiment trends, heatmaps
+    └── correlation_analysis/                # Sentiment-EPS correlations
 ```
 
 ---
@@ -176,195 +171,6 @@ financial_sentiment_analysis-Microsoft_earnings/
 | **DistilRoBERTa** | mrm8488/distilroberta-financial | Financial news sentiment | Fast inference, good generalization |
 
 **Ensemble Method**: Average probabilities across models; flag disagreement (entropy) as low-confidence predictions.
-
----
-
-## Installation
-
-### Requirements
-- Python 3.7+
-- Jupyter Notebook (for interactive exploration)
-- GPU recommended (but not required) for transformer inference
-
-### Dependencies
-```bash
-pip install pandas numpy spacy torch transformers scikit-learn python-docx openpyxl
-python -m spacy download en_core_web_sm
-```
-
-### Optional (for faster inference)
-```bash
-pip install onnxruntime  # For ONNX-optimized transformer inference
-```
-
----
-
-## Usage
-
-### Quick Start: Analyze a Single Earnings Release
-
-```python
-from code.extractData import ExtractData
-from code.classifiers import classify
-from code.text_preprocessing import TextProcessor
-
-# 1. Extract text from earnings release
-extractor = ExtractData()
-sentences_df = extractor.extractText(path="data/earningsrelease/", quarter="FY22Q1")
-
-# 2. Preprocess text
-processor = TextProcessor()
-sentences_df['text_clean'] = sentences_df['text'].apply(
-    lambda x: processor.preprocess_text(
-        x, lower=True, remove_unicode=True, lemmatize=True, remove_stops=False
-    )
-)
-
-# 3. Classify sentiment (ensemble of models)
-clf = classify()
-sentiments = []
-for text in sentences_df['text_clean']:
-    bert1 = clf.bert_classifier([text])[0]
-    bert2 = clf.bert_classifier_2([text])
-    roberta = clf.roberta_classifier([text])
-    
-    # Average predictions
-    ensemble_score = (bert1['score'] + bert2.mean() + roberta.mean()) / 3
-    sentiments.append(ensemble_score)
-
-sentences_df['sentiment'] = sentiments
-```
-
-### Interactive Exploration: Paragraph-Level Sentiment Heatmap
-
-```python
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-# Extract and score paragraphs
-paragraphs_df = extractor.extractParagraph(path="data/earningsrelease/")
-# [apply preprocessing and classification as above]
-
-# Visualize sentiment across quarters
-pivot_table = paragraphs_df.pivot_table(
-    values='sentiment', 
-    index='paragraph_topic', 
-    columns='quarter', 
-    aggfunc='mean'
-)
-
-plt.figure(figsize=(14, 6))
-sns.heatmap(pivot_table, cmap='RdYlGn', center=0.5, annot=True, fmt='.2f')
-plt.title("Microsoft Earnings Sentiment Heatmap by Topic & Quarter")
-plt.show()
-```
-
-### Keyword-Driven Sentiment Analysis
-
-```python
-# Track sentiment in sections mentioning key products/themes
-keywords = {
-    'azure': ['azure', 'cloud', 'infrastructure'],
-    'ai': ['ai', 'artificial intelligence', 'machine learning'],
-    'margins': ['margin', 'profitability', 'cost'],
-    'guidance': ['forecast', 'outlook', 'expect', 'anticipate']
-}
-
-for theme, kws in keywords.items():
-    theme_sentences = sentences_df[
-        sentences_df['text_clean'].str.contains('|'.join(kws), case=False)
-    ]
-    avg_sentiment = theme_sentences['sentiment'].mean()
-    print(f"{theme.upper()}: {avg_sentiment:.3f} avg sentiment")
-```
-
-### Correlate Sentiment with Financial Metrics
-
-```python
-# Load EPS data
-eps_data = pd.read_excel('data/earnings_per_share_estimates.xlsx')
-
-# Merge sentiment with EPS
-quarterly_sentiment = sentences_df.groupby('quarter')['sentiment'].agg(['mean', 'std'])
-merged = quarterly_sentiment.join(eps_data.set_index('quarter'))
-
-# Calculate correlation
-correlation = merged['sentiment'].corr(merged['eps_actual'] - merged['eps_forecast'])
-print(f"Sentiment-EPS Miss Correlation: {correlation:.3f}")
-```
-
----
-
-## Components
-
-### extractData.py
-
-**Class**: `ExtractData`
-
-**Methods**:
-- `extractText(path, quarter)`: Extract sentences with metadata (position, context)
-- `extractParagraph(path, quarter)`: Extract paragraphs by logical topic
-- `extractFinancials(path, quarter)`: Extract EPS, guidance, segment data from tables
-
-**Features**:
-- Handles multiple document formats
-- Preserves sentence/paragraph position for context
-- Robust to formatting variations across years
-- Quarter-based filtering
-
-### text_preprocessing.py
-
-**Class**: `TextProcessor`
-
-**Methods**:
-- `preprocess_text(text, lower, remove_unicode, lemmatize, remove_stops)`: Configurable pipeline
-
-**Options**:
-- Preserve domain entities (company names, product names)
-- Financial-specific stopword lists (vs. generic)
-- Negation handling for financial language
-- Custom tokenization for financial abbreviations
-
-### classifiers.py
-
-**Class**: `classify`
-
-**Methods**:
-- `bert_classifier(text)`: FinBERT tone analysis
-- `bert_classifier_2(text)`: Alternative FinBERT variant
-- `roberta_classifier(text)`: DistilRoBERTa financial sentiment
-
-**Outputs**: 
-- Class probabilities (positive/negative/neutral)
-- Confidence scores
-- Aggregated ensemble predictions
-
----
-
-## Models
-
-### FinBERT (Tone) — BERT1
-- **Source**: [yiyanghkust/finbert-tone](https://huggingface.co/yiyanghkust/finbert-tone)
-- **Training Data**: Financial text (earnings calls, analyst reports, SEC filings)
-- **Output**: 3-class predictions (positive, neutral, negative)
-- **Strength**: Domain-specific language understanding
-
-### FinBERT — BERT2
-- **Source**: [ProsusAI/finbert](https://huggingface.co/ProsusAI/finbert)
-- **Training Data**: Financial news and analyst sentiment
-- **Output**: 3-class predictions
-- **Strength**: Lighter weight, good balance of speed/accuracy
-
-### DistilRoBERTa
-- **Source**: [mrm8488/distilroberta-financial](https://huggingface.co/mrm8488/distilroberta-finetuned-financial-news-sentiment-analysis)
-- **Training Data**: Financial news articles
-- **Output**: 3-class predictions
-- **Strength**: Fast inference, robust generalization
-
-**Why Ensemble?**
-- **Robustness**: Disagreement flags uncertain predictions
-- **Coverage**: Different models trained on different financial genres (calls, news, filings)
-- **Risk management**: Reduces false positives in sentiment signals
 
 ---
 
@@ -441,42 +247,6 @@ Risk Disclosures:
 - Which products get most positive language?
 - Does management downplay weaknesses in specific segments?
 - What new topics emerge across earnings seasons?
-
----
-
-## Interactive Sentiment Parsing
-
-This tool enables **rapid, interactive parsing of earnings documents** to gain competitive edge:
-
-### Workflow 1: Pre-Earnings Scout (24-48 hours before earnings release)
-1. Analyst reviews prior-quarter guidance vs. market consensus
-2. Loads **historical sentiment baseline** for similar guidance signals
-3. Prepares watchlist of themes/products likely to be discussed
-4. Sets **sentiment thresholds** for what would constitute red flags
-
-### Workflow 2: Real-Time Earnings Analysis (at release)
-1. **Extract and score** new earnings document within seconds
-2. **Heatmap comparison**: Current tone vs. 4-quarter rolling average
-3. **Keyword sentiment tracking**: Alert on dramatic shifts (e.g., "Azure sentiment dropped from +0.7 to +0.4")
-4. **Confidence scoring**: Which sentiment signals are robust vs. uncertain?
-5. **Actionable output**: "Hedge language density up 30%; margin commentary negative; EPS guidance risk?"
-
-### Workflow 3: Post-Earnings Deep Dive
-1. Compare actual earnings sentiment to **pre-market guidance sentiment**
-2. Identify **tone-miss correlations**: Did guidance tone underestimate/overestimate actual results?
-3. Extract **forward guidance analysis**: What sentiment patterns predict next quarter's guidance?
-4. Build **predictive heuristics**: "When guidance paragraph sentiment drops >0.15, expect revised guidance within 6 weeks in 67% of cases"
-
-### Key Metrics Tracked
-
-| Metric | Definition | Interpretation |
-|--------|-----------|-----------------|
-| **Sentiment Mean** | Average (positive/negative) score across document | Overall tone: bullish vs. cautious |
-| **Sentiment Volatility** | Std dev of sentiment scores | Consistency of tone: mixed messages vs. unified narrative |
-| **Hedging Density** | Frequency of hedging words ("may," "could," "potential") | Management confidence: certain vs. uncertain |
-| **Tone Premium** | Sentiment of opening vs. body text | Executive framing: optimistic setup vs. cautious details |
-| **Product Divergence** | Difference in sentiment across product/segment mentions | Strategic messaging: which areas get positive framing? |
-| **Guidance Conservatism** | Sentiment of forward guidance statements vs. historical tone | Conservative guidance: sign of unmet expectations? |
 
 ---
 
@@ -573,21 +343,6 @@ This tool enables **rapid, interactive parsing of earnings documents** to gain c
 - **Edge gained**: 2-week lead on consensus revision
 
 ---
-
-## Contributing
-
-Contributions welcome! Areas for enhancement:
-
-- **Multi-company support**: Extend to Apple, Google, Amazon earnings for cross-company comparison
-- **Real-time pipeline**: Integrate with financial data APIs for live earnings tracking
-- **Fine-tuned models**: Train domain-specific sentiment models on earnings releases
-- **Advanced NLP**: Incorporate Named Entity Recognition (NER) for product/executive tracking
-- **Visualization dashboard**: Interactive web dashboard for sentiment exploration
-- **Predictive modeling**: Build ML models to predict earnings beats/misses from sentiment features
-
----
-
-## Citation & Author
 
 **Course**: SMM635 / Data Analytics Projects  
 **Student ID**: 210049563  
