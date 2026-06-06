@@ -2,7 +2,7 @@
 
 ## The Business Problem
 
-Earnings reports are carefully crafted documents where every word matters. While management maintains a facade of measured confidence, subtle shifts in tone—from assertive to cautious, from technical precision to hedging language—often signal underlying business pressures. **But can we detect these linguistic shifts systematically, before the market fully prices them in?** This project develops tools to analyze Microsoft's quarterly earnings reports at scale, identifying sentiment patterns that might precede earnings surprises or signal strategic pivots. For equity researchers, investor relations teams, and algorithmic traders, rapid access to sentiment trends across earnings documents can provide a competitive edge in interpreting management guidance and forward-looking statements.
+Earnings reports are carefully crafted documents where every word matters. While management maintains a facade of measured confidence, subtle shifts in tone; from assertive to cautious, from technical precision to hedging language often signal underlying business pressures. **But can we detect these linguistic shifts systematically, before the market fully prices them in?** This project develops tools to analyze Microsoft's quarterly earnings reports at scale, identifying sentiment patterns that might precede earnings surprises or signal strategic pivots. For equity researchers, investor relations teams, and algorithmic traders, rapid access to sentiment trends across earnings documents can provide a competitive edge in interpreting management guidance and forward-looking statements.
 
 ---
 
